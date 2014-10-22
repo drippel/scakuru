@@ -8,6 +8,23 @@ class Writer {
 
 
 object Writer {
+  def printPossibles(grid : Grid) = {
+
+    for( y <- 0 until grid.Y ) {
+      for( x <- 0 until grid.X ) {
+
+        grid.cells(x)(y) match {
+          case e : Entry => {
+            Console.println( "("+ x +","+ y+") => " + e.possibles.mkString(",")  )
+          }
+          case _ => { }
+        }
+
+      }
+    }
+
+  }
+
 
   def print( grid : Grid ) = {
 
