@@ -19,4 +19,10 @@ class Entry extends Cell {
     if( solved() ){ possibles.head }
     else{ -1 }
   }
+
+  override def clone() = {
+    val copy = new Entry()
+    copy.possibles = possibles.clone()
+    copy
+  }
 }

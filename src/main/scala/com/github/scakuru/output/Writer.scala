@@ -51,4 +51,17 @@ object Writer {
   def printHint( hint : Hint ) : String = {
     hint.clues.mkString(":")
   }
+
+
+  def printLines( grid : Grid ) = {
+
+    for( line <- grid.lines ){
+
+      var msg = "[" + line.dir +" "+ line.sum + " ( "
+      msg += line.solutions.mkString(";")
+      msg += " ) "
+      Console.println(msg)
+    }
+
+  }
 }

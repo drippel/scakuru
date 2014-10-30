@@ -3,5 +3,11 @@ package com.github.scakuru
 import scala.collection.mutable.ListBuffer
 
 class Hint extends Cell {
-  val clues = ListBuffer[Clue]()
+  var clues = ListBuffer[Clue]()
+
+  override def clone() = {
+    val copy = new Hint
+    copy.clues = clues.clone()
+    copy
+  }
 }

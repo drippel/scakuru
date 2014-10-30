@@ -26,6 +26,20 @@ object Parser {
       R6,.,.,.,B,R3,.,.;
     """
 
+  val example2 =
+    """
+      9,9;
+      B,D9,D36,D26,D7,B,D7,D36,B;
+      R18,.,.,.,.,R4,.,.,B;
+      R30,.,.,.,.,D19:R7,.,.,D12;
+      B,R9,.,.,D20:R10,.,.,.,.;
+      B,D4:R14,.,.,.,.,D24:R17,.,.;
+      R9,.,.,D18:R20,.,.,.,.,B;
+      R16,.,.,.,.,D4:R12,.,.,D6;
+      B,R14,.,.,R21,.,.,.,.;
+      B,R10,.,.,R17,.,.,.,.;
+    """
+
   def parseHints( s : String) : Cell = {
 
     val hint = new Hint()
@@ -82,25 +96,24 @@ object Parser {
 
   }
 
-  val hintsBySum = HintsTable.hintsBySum()
-  val hintsByLength = HintsTable.hintsByLength()
-
   def main (args : Array[String]) {
-    val g = parse(example)
+    val g = parse(example2)
 
-    Writer.print(g)
+    // Writer.print(g)
 
     g.buildLines()
 
     reduce(g)
 
-    Writer.printPossibles(g)
+    // Writer.printPossibles(g)
+
+    // Writer.printLines(g)
 
   }
 
   type reducer = (Line) => Int
 
-  val reducers = ListBuffer[reducer]( simpleReduce, solvedReduce, tableReducer )
+  val reducers = ListBuffer[reducer]( simpleReduce, solutionReducer, solvedReduce, uniqueReducer, tableReducer )
 
 
   def reduce( grid : Grid ) : Int = {
@@ -117,6 +130,7 @@ object Parser {
             i
           }
         })
+
       count += eliminated
     }
 
@@ -131,11 +145,7 @@ object Parser {
 
   def simpleReduce( line : Line ) : Int = {
 
-    val bySum = hintsBySum(line.sum)
-    val byLen = bySum(line.entries.length)
-
-    val uniqueHints = byLen.flatten.toSet
-    // Console.println(uniqueHints)
+    val uniqueHints = line.solutions.flatten.toSet
 
     line.entries.foldLeft(0)(
       (i,e) => {
@@ -162,41 +172,15 @@ object Parser {
   }
 
 
-  def uniqueReducer( line : Line ) : Int = {
-
-    var count = 0
-
-    val counts = line.buildCountMap()
-    val uniques = counts.filter( (t) => { t._2 == 1 }).map( (t) => { t._1 })
-
-    val (solved,unsolved) = line.entries.partition( (e) => { e.solved() })
-
-    for( u <- uniques ) {
-
-      val hasUnique = unsolved.filter( (e) => { e.possibles.contains(u)} )
-
-      for( h <- hasUnique ){
-        h.keep( Set(u) )
-        count += 1
-      }
-    }
-
-    count
-
-  }
-
-
   def tableReducer( line : Line ) : Int = {
 
     // get all the possibles
-    val bySum = hintsBySum(line.sum)
-    val byLen = bySum(line.entries.length)
 
     val (solved,unsolved) = line.entries.partition( _.solved() )
     if( !solved.isEmpty && !unsolved.isEmpty ) {
       val solvedValues = solved.map(_.value())
 
-      val possibleSolutions = byLen.filter((l) => {
+      val possibleSolutions = line.solutions.filter((l) => {
         solvedValues.forall((i) => {
           l.contains(i)
         })
@@ -205,15 +189,10 @@ object Parser {
       val solvedValueSet = solvedValues.toSet
       val possibleSolutionsSet = possibleSolutions.flatten.toSet
 
-      Console.println("solved:" + solvedValueSet)
-      Console.println("possibles:" + possibleSolutionsSet)
-
       val diff = possibleSolutionsSet.diff(solvedValueSet)
-      Console.println("diff:" + diff)
 
       var count = 0
       for( u <- unsolved if( u.possibles.exists((i) => { !diff.contains(i)})) ){
-        Console.println("eliminating")
         u.keep(diff)
         count += 1
       }
@@ -222,5 +201,47 @@ object Parser {
     }
     else { 0 }
 
+  }
+
+  def solutionReducer( line : Line ) : Int = {
+
+    // get all the remaining possibles for the line
+    val possibles = line.possibles
+
+    // make sure that each remaining solution is a set or subset of possibles
+    val (validSols,invalidSols) = line.solutions.partition( (sol) => { sol.toSet.subsetOf(possibles) })
+
+    line.solutions = validSols
+
+    invalidSols.length
+
+  }
+
+
+  def uniqueReducer( line : Line ) : Int = {
+
+    var count = 0
+
+    if( !line.solved() ){
+
+      if( line.solutions.length == 1 ){
+
+        val counts = line.buildCountMap()
+
+        val singles = counts.filter( (t) => { t._2 == 1 } )
+
+        for( single <- singles ){
+
+          // find the entry that still has the number
+          val entry = line.entries.filter( (e) => { e.possibles.contains(single._1)}).head
+
+
+          count += entry.keep( Set(single._1) )
+
+        }
+      }
+    }
+
+    count
   }
 }

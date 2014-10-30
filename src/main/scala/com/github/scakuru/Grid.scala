@@ -1,12 +1,14 @@
 package com.github.scakuru
 
+import com.github.scakuru.table.HintsTable
+
 import scala.collection.mutable.ListBuffer
 
 class Grid( val X : Int, val Y : Int ) {
 
   val cells = Array.fill( X, Y ){ new Cell() }
 
-  val lines = ListBuffer[Line]()
+  var lines = ListBuffer[Line]()
 
   def entries() : List[Entry] = {
 
@@ -54,6 +56,7 @@ class Grid( val X : Int, val Y : Int ) {
     newLine.entries ++= followLine( (x+mask._1), (y+mask._2), mask, List() )
     newLine.sum = clue.sum
     newLine.dir = clue.direction
+    newLine.solutions ++= HintsTable.hintsBySum()(newLine.sum)(newLine.entries.length)
 
     lines += newLine
   }
@@ -69,6 +72,22 @@ class Grid( val X : Int, val Y : Int ) {
         case _ => {accum}
       }
     }
+  }
+
+
+  override def clone() = {
+
+    val copy = new Grid(X,Y)
+
+      for( y <- 0 until Y ) {
+        for( x <- 0 until X ) {
+          copy.cells(x)(y) = cells(x)(y).clone
+        }
+      }
+
+    copy.lines = lines.clone()
+
+    copy
   }
 
 }

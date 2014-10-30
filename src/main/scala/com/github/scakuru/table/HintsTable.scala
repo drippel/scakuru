@@ -234,8 +234,18 @@ object HintsTable {
     Console.println(hintsByLength)
     Console.println(hintsBySum)
 
-    val bySum = hintsBySum()
-    Console.println( bySum(6) )
+    val byLength = hintsByLength()
+
+    for( l <- byLength ){
+      Console.println(l._1)
+      for( s <- l._2 ){
+        Console.print( s._1 )
+        for( lst <- s._2 ){
+          Console.print( "\t"+ lst.mkString(",") )
+        }
+        Console.print("\n")
+      }
+    }
 
   }
 }

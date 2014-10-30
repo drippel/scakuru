@@ -1,3 +1,6 @@
 package com.github.scakuru
 
-class Cell {  }
+class Cell {
+
+  override def clone() = { new Cell() }
+}

@@ -5,8 +5,9 @@ import scala.collection.mutable.ListBuffer
 
 class Line {
   var sum : Int = 0
-  val entries = ListBuffer[Entry]()
+  var entries = ListBuffer[Entry]()
   var dir : String = ""
+  var solutions = ListBuffer[List[Int]]()
 
   def solved() : Boolean = {
     entries.forall( (e) => { e.solved() })
@@ -24,5 +25,28 @@ class Line {
       }
     }
     counts.toMap
+  }
+
+  override def clone() = {
+    val copy = new Line()
+
+    copy.sum = sum
+    copy.dir = dir
+    copy.entries = entries.clone
+
+    copy
+  }
+
+
+  def possibles() : Set[Int] = {
+
+    val remaining = ListBuffer[Int]()
+
+    for( e <- entries ){
+      remaining ++= e.possibles
+    }
+
+    remaining.toSet
+
   }
 }
