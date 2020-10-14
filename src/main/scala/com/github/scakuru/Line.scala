@@ -1,5 +1,7 @@
 package com.github.scakuru
 
+// comment
+
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 
